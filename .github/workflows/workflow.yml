@@ -96,6 +96,10 @@ jobs:
 
     - name: Replace placeholders in YML script
       run: |
+          # Convert APP_PORT to an integer
+          APP_PORT="${APP_PORT:-0}"
+          APP_PORT=$((APP_PORT))
+
           sed -i "s/{{AUTH_DB_USER}}/${AUTH_DB_USER}/g" k8s/api-gateway.yml
           sed -i "s/{{AUTH_DB_PASS}}/${AUTH_DB_PASS}/g" k8s/api-gateway.yml
           sed -i "s/{{AUTH_DB_NAME}}/${AUTH_DB_NAME}/g" k8s/api-gateway.yml
