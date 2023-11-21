@@ -152,7 +152,7 @@ spec:
               value: "3650d"
 
             - name: APP_PORT
-              value: {{APP_PORT}}
+              value: "{{APP_PORT}}"
 
 ---
 apiVersion: v1
