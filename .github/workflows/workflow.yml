@@ -112,6 +112,8 @@ jobs:
           sed -i "s/{{RABBITMQ_HOST}}/${RABBITMQ_HOST}/g" k8s/api-gateway.yml
           sed -i "s/{{RABBITMQ_PORT}}/${RABBITMQ_PORT}/g" k8s/api-gateway.yml
           sed -i "s/{{APP_PORT}}/${APP_PORT}/g" k8s/api-gateway.yml
+          sed -i "s/{{DATABASE_TYPE}}/${DATABASE_TYPE}/g" k8s/api-gateway.yml
+
 
     - name: Replace placeholders Image in YML script
       run: |
