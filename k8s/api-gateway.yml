@@ -152,7 +152,7 @@ spec:
               value: "3650d"
 
             - name: APP_PORT
-              value: "{{APP_PORT}}"
+              value: "{APP_PORT}"
 
 ---
 apiVersion: v1
@@ -166,5 +166,5 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: "{{APP_PORT}}"
+      targetPort: "{APP_PORT}"
       protocol: TCP
