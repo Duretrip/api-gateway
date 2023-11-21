@@ -9,46 +9,46 @@ on:
 
 jobs:
 
-  # create-image-and-push-to-dockerhub:
+  create-image-and-push-to-dockerhub:
 
-  #   name: Create Image and Push to Dockerhub
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/dev'
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #     - name: Set up Docker Compose
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y docker-compose
-  #       continue-on-error: true
+    name: Create Image and Push to Dockerhub
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+        continue-on-error: true
       
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Log in to Docker Hub
-  #       run: |
-  #         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-  #       env:
-  #         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  #         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      - name: Log in to Docker Hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
       
-  #     - name: Replace placeholders Image in YML script
-  #       run: |
-  #         sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" docker-compose.yaml
+      - name: Replace placeholders Image in YML script
+        run: |
+          sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" docker-compose.yaml
 
-  #     - name: Build Docker images
-  #       env:
-  #         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  #       run: |
-  #         docker-compose -f docker-compose.yaml build
-  #         docker-compose -f docker-compose.yaml push
-  #       working-directory: .
+      - name: Build Docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          docker-compose -f docker-compose.yaml build
+          docker-compose -f docker-compose.yaml push
+        working-directory: .
 
 
   setup-and-deploy-to-cluster-main:
-    # needs: [create-image-and-push-to-dockerhub]
+    needs: [create-image-and-push-to-dockerhub]
 
     name: Setup and Deploy
     runs-on: ubuntu-latest
@@ -116,9 +116,9 @@ jobs:
           sed -i "s/{{DATABASE_TYPE}}/${DATABASE_TYPE}/g" k8s/api-gateway.yml
 
 
-    # - name: Replace placeholders Image in YML script
-    #   run: |
-    #       sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" k8s/api-gateway.yml
+    - name: Replace placeholders Image in YML script
+      run: |
+          sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" k8s/api-gateway.yml
 
     - name: Deploy on the GKE
       env:
