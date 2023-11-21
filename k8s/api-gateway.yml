@@ -19,7 +19,7 @@ spec:
           image: duretrip/api-gateway:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: {{APP_PORT}}
+            - containerPort: {APP_PORT}
           resources:
             requests:
               memory: "500Mi"
@@ -32,40 +32,40 @@ spec:
               value: "--max-old-space-size=4096"
 
             - name: REDIS_HOST
-              value: {{REDIS_HOST}}
+              value: "{{REDIS_HOST}}"
 
             - name: REDIS_PORT
-              value: {{REDIS_PORT}}
+              value: "{{REDIS_PORT}}"
 
             - name: REDIS_PASSWORD
-              value: {{REDIS_PASSWORD}}
+              value: "{{REDIS_PASSWORD}}"
 
             - name: DATABASE_TYPE
-              value: {{DATABASE_TYPE}}
+              value: "{{DATABASE_TYPE}}"
 
             - name: DATABASE_NAME
-              value: {{AUTH_DB_NAME}}
+              value: "{{AUTH_DB_NAME}}"
 
             - name: DATABASE_HOST
-              value: {{AUTH_DB_HOST}}
+              value: "{{AUTH_DB_HOST}}"
 
             - name: DATABASE_USERNAME
-              value: {{AUTH_DB_USER}}
+              value: "{{AUTH_DB_USER}}"
 
             - name: DATABASE_PASSWORD
-              value: {{AUTH_DB_PASS}}
+              value: "{{AUTH_DB_PASS}}"
 
             - name: DATABASE_PORT
-              value: {{AUTH_DB_PORT}}
+              value: "{{AUTH_DB_PORT}}"
 
             - name: JWT_SECRET
-              value: {{JWT_SECRET}}
+              value: "{{JWT_SECRET}}"
 
             - name: MAIL_HOST
-              value: {{MAIL_HOST}}
+              value: "{{MAIL_HOST}}"
             
             - name: MAIL_PORT
-              value: {{MAIL_PORT}}
+              value: "{{MAIL_PORT}}"
             
             - name: MAIL_USER
               value: ""
@@ -104,55 +104,55 @@ spec:
               value: ""
 
             - name: WORKER_HOST
-              value: redis://{{REDIS_PASSWORD}}@{{REDIS_HOST}}:{{REDIS_PORT}}/1
+              value: "redis://{{REDIS_PASSWORD}}@{{REDIS_HOST}}:{{REDIS_PORT}}/1"
 
             - name: FRONTEND_DOMAIN
-              value: http://dev.duretrip.com
+              value: "http://dev.duretrip.com"
 
             - name: BACKEND_DOMAIN
-              value: http://dev-api.duretrip.com
+              value: "http://dev-api.duretrip.com"
 
             - name: APP_NAME
-              value: Duretrip
+              value: "DureTrip"
 
             - name: API_PREFIX
               value: ""
 
             - name: APP_FALLBACK_LANGUAGE
-              value: en
+              value: "en"
 
             - name: APP_HEADER_LANGUAGE
-              value: x-custom-lang
+              value: "x-custom-lang"
 
             - name: RABBITMQ_CONECTION_URL
-              value: amqp://{{RABBITMQ_USERNAME}}:{{RABBITMQ_PASSWORD}}@{{RABBITMQ_HOST}}:{{RABBITMQ_PORT}}
+              value: "amqp://{{RABBITMQ_USERNAME}}:{{RABBITMQ_PASSWORD}}@{{RABBITMQ_HOST}}:{{RABBITMQ_PORT}}"
 
             - name: RABBITMQ_JET_QUEUE
-              value: jet-queue
+              value: "jet-queue"
 
             - name: RABBITMQ_API_GATEWAY_QUEUE
-              value: api-gateway-queue
+              value: "api-gateway-queue"
 
             - name: RABBITMQ_AUTH_QUEUE
-              value: auth-queue
+              value: "auth-queue"
 
             - name: RABBITMQ_MAILER_QUEUE
-              value: email-queue
+              value: "email-queue"
 
             - name: AUTH_JWT_SECRET
-              value: secret
+              value: "{{JWT_SECRET}}"
 
             - name: AUTH_JWT_TOKEN_EXPIRES_IN
-              value: '10080m'
+              value: "10080m"
 
             - name: AUTH_REFRESH_SECRET
-              value: secret_for_refresh
+              value: "secret_for_refresh"
 
             - name: AUTH_REFRESH_TOKEN_EXPIRES_IN
-              value: 3650d
+              value: "3650d"
 
             - name: APP_PORT
-              value: {{APP_PORT}}
+              value: "{{APP_PORT}}"
 
 ---
 apiVersion: v1
@@ -166,5 +166,5 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: {{APP_PORT}}
+      targetPort: "{{APP_PORT}}"
       protocol: TCP
