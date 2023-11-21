@@ -1,0 +1,127 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+
+  create-image-and-push-to-dockerhub:
+
+    name: Create Image and Push to Dockerhub
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+        continue-on-error: true
+      
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: Replace placeholders Image in YML script
+        run: |
+          sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" docker-compose.yaml
+
+      - name: Build Docker images
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          docker-compose -f docker-compose.yaml build
+          docker-compose -f docker-compose.yaml push
+        working-directory: .
+
+
+  setup-and-deploy-to-cluster-main:
+    needs: [create-image-and-push-to-dockerhub]
+
+    name: Setup and Deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    env:
+      AUTH_DB_USER: ${{ secrets.AUTH_DB_USER }}
+      AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
+      AUTH_DB_NAME: ${{ secrets.AUTH_DB_NAME }}
+      AUTH_DB_HOST: ${{ secrets.AUTH_DB_HOST }}
+      AUTH_DB_PORT: ${{ secrets.AUTH_DB_PORT }}
+      DATABASE_TYPE: ${{ secrets.DATABASE_TYPE }}
+      APP_PORT: ${{ secrets.APP_PORT }}
+      RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+      RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+      RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+      RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      MAIL_HOST: ${{ secrets.MAIL_HOST }}
+      MAIL_PORT: ${{ secrets.MAIL_PORT }}
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GKE_SA }}
+    - name: Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@v1
+      with:
+        cluster_name: ${{ secrets.GKE_DEV_CLUSTER_NAME }}
+        location: ${{ secrets.GKE_DEV_CLUSTER_ZONE }}
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+    - name: Replace placeholders in YML script
+      run: |
+          sed -i "s/{{AUTH_DB_USER}}/${AUTH_DB_USER}/g" k8s/api-gateway.yml
+          sed -i "s/{{AUTH_DB_PASS}}/${AUTH_DB_PASS}/g" k8s/api-gateway.yml
+          sed -i "s/{{AUTH_DB_NAME}}/${AUTH_DB_NAME}/g" k8s/api-gateway.yml
+          sed -i "s/{{AUTH_DB_HOST}}/${AUTH_DB_HOST}/g" k8s/api-gateway.yml
+          sed -i "s/{{AUTH_DB_PORT}}/${AUTH_DB_PORT}/g" k8s/api-gateway.yml
+          sed -i "s/{{REDIS_HOST}}/${REDIS_HOST}/g" k8s/api-gateway.yml
+          sed -i "s/{{REDIS_PORT}}/${REDIS_PORT}/g" k8s/api-gateway.yml
+          sed -i "s/{{REDIS_PASSWORD}}/${REDIS_PASSWORD}/g" k8s/api-gateway.yml
+          sed -i "s/{{JWT_SECRET}}/${JWT_SECRET}/g" k8s/api-gateway.yml
+          sed -i "s/{{MAIL_HOST}}/${MAIL_HOST}/g" k8s/api-gateway.yml
+          sed -i "s/{{MAIL_PORT}}/${MAIL_PORT}/g" k8s/api-gateway.yml
+          sed -i "s/{{RABBITMQ_USERNAME}}/${RABBITMQ_USERNAME}/g" k8s/api-gateway.yml
+          sed -i "s/{{RABBITMQ_PASSWORD}}/${RABBITMQ_PASSWORD}/g" k8s/api-gateway.yml
+          sed -i "s/{{RABBITMQ_HOST}}/${RABBITMQ_HOST}/g" k8s/api-gateway.yml
+          sed -i "s/{{RABBITMQ_PORT}}/${RABBITMQ_PORT}/g" k8s/api-gateway.yml
+          sed -i "s/{{APP_PORT}}/${APP_PORT}/g" k8s/api-gateway.yml
+
+    - name: Replace placeholders Image in YML script
+      run: |
+          sed -i "s|image: duretrip/api-gateway:latest|image: duretrip/api-gateway:${{ github.sha }}|" k8s/api-gateway.yml
+
+    - name: Deploy on the GKE
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        CT_TYPE: "api"
+      run: |-
+        kubectl apply -f k8s/api-gateway.yml
+    
+       

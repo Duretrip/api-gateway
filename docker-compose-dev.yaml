@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  main:
+    container_name: auth-test
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: duretrip/api-gateway:086a8ddb7d6c2ccc5fbba13f3ce39cba311467a1
+    restart: always
+    ports:
+      - 8010:8010
+    env_file:
+      - .env.docker
+    # volumes:
+    #   - ./wait-for-it.sh:/opt/wait-for-it.sh  # Mount init.sql as an initialization script
+    #   - ./startup.docker.sh:/docker-entrypoint-initdb.d/startup.docker.sh  # Mount init.sql as an initialization script
+    # command: /docker-entrypoint-initdb.d/startup.docker.sh
+
+
+      

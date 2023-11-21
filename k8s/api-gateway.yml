@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-app
+  labels:
+    app: api-gateway-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway-app
+  template:
+    metadata:
+      labels:
+        app: api-gateway-app
+    spec:
+      containers:
+        - name: api-gateway-app
+          image: duretrip/api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{APP_PORT}}
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "0.2"
+            limits:
+              memory: "1Gi"
+              cpu: "0.5"
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=4096"
+
+            - name: REDIS_HOST
+              value: {{REDIS_HOST}}
+
+            - name: REDIS_PORT
+              value: {{REDIS_PORT}}
+
+            - name: REDIS_PASSWORD
+              value: {{REDIS_PASSWORD}}
+
+            - name: DATABASE_TYPE
+              value: {{DATABASE_TYPE}}
+
+            - name: DATABASE_NAME
+              value: {{AUTH_DB_NAME}}
+
+            - name: DATABASE_HOST
+              value: {{AUTH_DB_HOST}}
+
+            - name: DATABASE_USERNAME
+              value: {{AUTH_DB_USER}}
+
+            - name: DATABASE_PASSWORD
+              value: {{AUTH_DB_PASS}}
+
+            - name: DATABASE_PORT
+              value: {{AUTH_DB_PORT}}
+
+            - name: JWT_SECRET
+              value: {{JWT_SECRET}}
+
+            - name: MAIL_HOST
+              value: {{MAIL_HOST}}
+            
+            - name: MAIL_PORT
+              value: {{MAIL_PORT}}
+            
+            - name: MAIL_USER
+              value: ""
+
+            - name: MAIL_PASSWORD
+              value: ""
+
+            - name: MAIL_IGNORE_TLS
+              value: "true"
+
+            - name: MAIL_SECURE
+              value: "false"
+
+            - name: MAIL_REQUIRE_TLS
+              value: "false"
+
+            - name: MAIL_DEFAULT_EMAIL
+              value: "info@duretrip.com"
+
+            - name: MAIL_DEFAULT_NAME
+              value: "DureTrip"
+
+            - name: MAIL_CLIENT_PORT
+              value: "80"
+
+            - name: FILE_DRIVER
+              value: "local"
+
+            - name: ACCESS_KEY_ID
+              value: ""
+
+            - name: AWS_S3_REGION
+              value: ""
+
+            - name: AWS_DEFAULT_S3_BUCKET
+              value: ""
+
+            - name: WORKER_HOST
+              value: redis://{{REDIS_PASSWORD}}@{{REDIS_HOST}}:{{REDIS_PORT}}/1
+
+            - name: FRONTEND_DOMAIN
+              value: http://dev.duretrip.com
+
+            - name: BACKEND_DOMAIN
+              value: http://dev-api.duretrip.com
+
+            - name: APP_NAME
+              value: Duretrip
+
+            - name: API_PREFIX
+              value: ""
+
+            - name: APP_FALLBACK_LANGUAGE
+              value: en
+
+            - name: APP_HEADER_LANGUAGE
+              value: x-custom-lang
+
+            - name: RABBITMQ_CONECTION_URL
+              value: amqp://{{RABBITMQ_USERNAME}}:{{RABBITMQ_PASSWORD}}@{{RABBITMQ_HOST}}:{{RABBITMQ_PORT}}
+
+            - name: RABBITMQ_JET_QUEUE
+              value: jet-queue
+
+            - name: RABBITMQ_API_GATEWAY_QUEUE
+              value: api-gateway-queue
+
+            - name: RABBITMQ_AUTH_QUEUE
+              value: auth-queue
+
+            - name: RABBITMQ_MAILER_QUEUE
+              value: email-queue
+
+            - name: AUTH_JWT_SECRET
+              value: secret
+
+            - name: AUTH_JWT_TOKEN_EXPIRES_IN
+              value: '10080m'
+
+            - name: AUTH_REFRESH_SECRET
+              value: secret_for_refresh
+
+            - name: AUTH_REFRESH_TOKEN_EXPIRES_IN
+              value: 3650d
+
+            - name: APP_PORT
+              value: {{APP_PORT}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-svc
+spec:
+  selector:
+    app: api-gateway-app
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{APP_PORT}}
+      protocol: TCP
