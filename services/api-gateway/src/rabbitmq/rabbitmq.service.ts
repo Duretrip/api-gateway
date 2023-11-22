@@ -44,8 +44,12 @@ export class RabbitMQService {
         'api-gateway-queue',
         (msg) => {
           if (msg) {
+            
             const message = JSON.parse(msg.content.toString());
+            console.log({ ourMsg: message });
             if (message.correlationId === correlationId) {
+              console.log({ correlationId });
+              console.log({ MsgcorrelationId: message.correlationId });
               resolve(message);
   
               // Acknowledge the message
@@ -65,7 +69,7 @@ export class RabbitMQService {
 
   public async waitForResponseWithTimeout(correlationId: string): Promise<any> {
     const RESPONSE_TIMEOUT = 15000; // Timeout in milliseconds (adjust as needed)
-
+    
     return Promise.race([
       this.waitForResponse(correlationId),
       new Promise((_, reject) =>
