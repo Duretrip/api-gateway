@@ -27,7 +27,7 @@ function generateUniqueId() {
 @ApiTags('Airports')
 @UseGuards(AuthGuard('jwt'), PermissionGuard)
 
-export class AirlinesController {
+export class IntegrationsController {
     constructor(private readonly rabbitMQService: RabbitMQService) { }
     @Get()
     @ApiQuery({
@@ -79,5 +79,7 @@ export class AirlinesController {
             res.status(500).json({ message: 'Internal Server Error' });
         }
     }
+
+    
 }
 
