@@ -72,15 +72,17 @@ export class PaymentController {
     return response.data;
   }
 
-  @Post('flw-webhook')
-  async webhook(@Req() req: Request, @Res() res: Response) {
-    try {
-      return await true;
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
-  }
+  // @Post('flw-webhook')
+  // async webhook(@Req() req: Request, @Res() res: Response) {
+  //   console.log({ body: req.body });
+    
+  //   try {
+      
+  //   } catch (err) {
+  //     console.log(err);
+  //     res.status(500).json({ message: 'Internal Server Error' });
+  //   }
+  // }
   // @Post('initiate')
   // async initiatePayment(
   //   @Body() credentials: InititatePaymentDto,
