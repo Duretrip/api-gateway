@@ -22,12 +22,6 @@ export class RabbitMQService {
     this.channel = await this.connection.createChannel();
   }
 
-  private async connectToRabbitMQOnly() {
-    this.connection = await amqp.connect(
-      String(process.env.RABBITMQ_CONECTION_URL),
-    ); // Replace with your RabbitMQ server URL
-  }
-
   // eslint-disable-next-line @typescript-eslint/require-await
   async publishMessage(queueName: string, message: any) {
     this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
@@ -87,42 +81,4 @@ export class RabbitMQService {
       ),
     ]);
   }
-
-  async sendMessage(queue: string, message: string): Promise<string> {
-    const connection = await amqp.connect(process.env.RABBITMQ_CONECTION_URL);
-
-    const channel = await connection.createChannel();
-
-    const replyQueue = await channel.assertQueue('', { exclusive: true });
-    channel.prefetch(1);
-    console.log(' [x] Awaiting RPC requests');
-
-    // Generate a random correlation ID
-    const correlationId = Math.random().toString() + Math.random().toString();
-
-    // Send the message to the server
-    channel.sendToQueue(queue, Buffer.from(message), {
-      correlationId,
-      replyTo: replyQueue.queue,
-    });
-
-    // Wait for the response from the server
-    return new Promise((resolve) => {
-      channel.consume(
-        replyQueue.queue,
-        (msg) => {
-          if (msg.properties.correlationId === correlationId) {
-            resolve(msg.content.toString());
-            connection.close();
-          }
-        },
-        { noAck: true },
-      );
-    });
-  }
-
-
-
-
-
 }
