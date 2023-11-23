@@ -14,7 +14,7 @@ export class InititatePaymentDto {
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'NG' })
+  @ApiProperty({ example: 'NGN' })
   currency: string;
 
   @IsObject()
