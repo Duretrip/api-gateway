@@ -60,10 +60,14 @@ export class IntegrationsController {
                 `${this.integrationsUrl}/airports?search=${search}&${limit ?? `limit=${limit}`}`
             );
 
-            res.status(201).json({
-                status: true,
-                data: response.data,
-            });
+            if (response.data && response.data !== '') {
+                res.status(201).json({
+                    status: true,
+                    data: response.data,
+                });
+            } else {
+                res.status(500).json({ message: 'Unable to fetch data' });
+            }
         } catch (err) {
             console.log(err);
             res.status(500).json({ message: 'Internal Server Error' });
@@ -82,7 +86,7 @@ export class IntegrationsController {
                 `${this.integrationsUrl}/flight/search`,
                 requestDto,
             );
-            if (response.data) {
+            if (response.data && response.data !== '') {
                 res.status(201).json({
                     status: true,
                     data: response.data,
@@ -105,7 +109,7 @@ export class IntegrationsController {
                 `${this.integrationsUrl}/flight/price`,
                 requestDto,
             );
-            if (response.data) {
+            if (response.data && response.data !== '') {
                 res.status(201).json({
                     status: true,
                     data: response.data,
