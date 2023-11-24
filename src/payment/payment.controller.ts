@@ -72,17 +72,21 @@ export class PaymentController {
     return response.data;
   }
 
-  // @Post('flw-webhook')
-  // async webhook(@Req() req: Request, @Res() res: Response) {
-  //   console.log({ body: req.body });
-    
-  //   try {
-      
-  //   } catch (err) {
-  //     console.log(err);
-  //     res.status(500).json({ message: 'Internal Server Error' });
-  //   }
-  // }
+  @Post('flw-webhook')
+  async webhook(@Req() req: Request, @Res() res: Response) {
+    const body = { ...req.body, hash: req.headers['verif-hash'] };
+    await this.httpService.axiosRef.post(
+      `${this.paymentUrl}/payments/flw-webhook`,
+      body,
+    );
+
+    try {
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+
   // @Post('initiate')
   // async initiatePayment(
   //   @Body() credentials: InititatePaymentDto,
