@@ -155,13 +155,13 @@ spec:
               value: "{{APP_PORT}}"
 
             - name: JET_BACKEND_DOMAIN
-              value: "jet-svc:8000"
+              value: "http://jet-svc:8000"
             - name: BOOKING_BACKEND_DOMAIN
-              value: "booking-svc:8000"
+              value: "http://booking-svc:8000"
             - name: PAYMENT_BACKEND_DOMAIN
-              value: "payment-svc:8000"
+              value: "http://payment-svc:8000"
             - name: INTEGRATIONS_BACKEND_DOMAIN
-              value: "integrations:8000"
+              value: "http://integrations:8000"
 
 ---
 apiVersion: v1
