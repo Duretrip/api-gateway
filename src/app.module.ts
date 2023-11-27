@@ -104,7 +104,7 @@ import { IntegrationsController } from './integrations/integrations.controller';
   providers: [RabbitMQService],
   controllers: [
     JetController,
-    AirlinesController,
+    IntegrationsController,
     PaymentController,
     BookingController,
   ],
