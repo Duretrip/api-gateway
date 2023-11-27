@@ -1,15 +1,25 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { InititatePaymentDto } from './dto/initiate-payment.dto';
 // import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
 // import { v4 as uuidv4 } from 'uuid';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
+import { AuthGuard } from '@nestjs/passport';
 
 // function generateUniqueId() {
 //   return uuidv4();
 // }
+
 @Controller('payments')
 @ApiTags('Payments')
 export class PaymentController {
@@ -21,16 +31,26 @@ export class PaymentController {
     this.paymentUrl = String(process.env.PAYMENT_BACKEND_DOMAIN);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post('initiate')
   async initiatePayment(
     @Body() credentials: InititatePaymentDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
+    const user = req.user as any;
+    const payload = {
+      ...credentials,
+      meta: {
+        user_id: user.id,
+        entity_type: credentials.meta.entity_type,
+      },
+    };
     try {
       const response = await this.httpService.axiosRef.post(
         `${this.paymentUrl}/payments/initiate`,
-        credentials,
+        payload,
       );
 
       res.status(201).json({
@@ -42,6 +62,9 @@ export class PaymentController {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post('verify-transaction')
   async verifyTransaction(
     @Body() credentials: VerifyTransactionDto,
@@ -62,14 +85,6 @@ export class PaymentController {
       console.log(err);
       res.status(500).json({ message: 'Internal Server Error' });
     }
-  }
-  @Get('banks')
-  async getBanks() {
-    const response = await this.httpService.axiosRef.get(
-      `${this.paymentUrl}/payments/banks`,
-    );
-
-    return response.data;
   }
 
   @Post('flw-webhook')

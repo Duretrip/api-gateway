@@ -25,7 +25,7 @@ import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
 import { QueryUserDto } from './dto/query-user.dto';
-import {Permissions} from 'src/permissions/decorators/permission.decorator'
+import { Permissions } from 'src/permissions/decorators/permission.decorator';
 import { PermissionGuard } from 'src/permissions/guards/permission.guard';
 
 @ApiBearerAuth()
@@ -37,7 +37,6 @@ import { PermissionGuard } from 'src/permissions/guards/permission.guard';
 })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-  
 
   @Permissions('CREATE_USER')
   @Post()
@@ -45,7 +44,6 @@ export class UsersController {
   create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createProfileDto);
   }
-
 
   @Permissions('CREATE_USER')
   @Get()
@@ -72,14 +70,12 @@ export class UsersController {
     );
   }
 
-
   @Permissions('CREATE_USER')
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   findOne(@Param('id') id: string): Promise<NullableType<User>> {
     return this.usersService.findOne({ id: +id });
   }
-
 
   @Permissions('CREATE_USER')
   @Patch(':id')
