@@ -30,7 +30,7 @@ import { NullableType } from '../utils/types/nullable.type';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(private readonly service: AuthService) { }
 
   @SerializeOptions({
     groups: ['me'],
