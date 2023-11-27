@@ -35,6 +35,7 @@ import { RolesModule } from './roles/roles.module';
 import { AirlinesController } from './airlines/airlines.controller';
 import { PaymentController } from './payment/payment.controller';
 import { HttpModule } from '@nestjs/axios';
+import { BookingController } from './booking/booking.controller';
 
 @Module({
   imports: [
@@ -100,6 +101,11 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   providers: [RabbitMQService],
-  controllers: [JetController, AirlinesController, PaymentController],
+  controllers: [
+    JetController,
+    AirlinesController,
+    PaymentController,
+    BookingController,
+  ],
 })
-export class AppModule {}
+export class AppModule { }
