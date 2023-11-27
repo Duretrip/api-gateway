@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -96,6 +97,29 @@ export class PaymentController {
     );
 
     try {
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+
+  @Get()
+  async getAllBookings(
+    @Query('search') search: string,
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 10,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const response = await this.httpService.axiosRef.get(
+        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}&search=${search}`,
+      );
+
+      res.status(201).json({
+        status: true,
+        data: response.data,
+      });
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: 'Internal Server Error' });
