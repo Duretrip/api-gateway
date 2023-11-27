@@ -13,7 +13,6 @@ import { InititatePaymentDto } from './dto/initiate-payment.dto';
 // import { v4 as uuidv4 } from 'uuid';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
-import { AuthGuard } from '@nestjs/passport';
 
 // function generateUniqueId() {
 //   return uuidv4();
