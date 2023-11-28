@@ -117,10 +117,14 @@ export class PaymentController {
     const body = { ...req.body, hash: req.headers['verif-hash'] };
     console.log({ APIGATEWAY: body });
 
-    await this.httpService.axiosRef.post(
+    const data = await this.httpService.axiosRef.post(
       `${this.paymentUrl}/payments/flw-webhook`,
       body,
     );
+
+    if (data){
+      res.status(200).end();
+    }
 
     try {
     } catch (err) {
