@@ -15,6 +15,7 @@ import { InititatePaymentDto } from './dto/initiate-payment.dto';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
 import { AuthGuard } from '@nestjs/passport';
+import { VerifyPaymentDto } from './dto/verify-payment.dto';
 
 // function generateUniqueId() {
 //   return uuidv4();
@@ -88,11 +89,34 @@ export class PaymentController {
     }
   }
 
+  @Post('verify-payment')
+  async verifyPayment(
+    @Body() credentials: VerifyPaymentDto,
+    @Req() req,
+    @Res() res,
+  ) {
+    try {
+      const response = await this.httpService.axiosRef.post(
+        `${this.paymentUrl}/payments/verify-payment`,
+        credentials,
+      );
+      res.status(201).json({
+        status: true,
+        data: response.data,
+      });
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+
   @Post('flw-webhook')
   async webhook(@Req() req, @Res() res) {
     console.log('flutterwave called us at the api gateway service');
 
     const body = { ...req.body, hash: req.headers['verif-hash'] };
+    console.log({ APIGATEWAY: body });
+
     await this.httpService.axiosRef.post(
       `${this.paymentUrl}/payments/flw-webhook`,
       body,
