@@ -3,16 +3,18 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InititatePaymentDto } from './dto/initiate-payment.dto';
 // import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
 // import { v4 as uuidv4 } from 'uuid';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
+import { AuthGuard } from '@nestjs/passport';
 
 // function generateUniqueId() {
 //   return uuidv4();
@@ -51,7 +53,6 @@ export class PaymentController {
     }
   }
 
-
   @Post('verify-transaction')
   async verifyTransaction(
     @Body() credentials: VerifyTransactionDto,
@@ -83,6 +84,30 @@ export class PaymentController {
     );
 
     try {
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get()
+  async getAllPayments(
+    @Query('search') search: string,
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 10,
+    @Res({ passthrough: true }) res,
+  ) {
+    try {
+      const response = await this.httpService.axiosRef.get(
+        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}&search=${search}`,
+      );
+
+      res.status(201).json({
+        status: true,
+        data: response.data,
+      });
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: 'Internal Server Error' });

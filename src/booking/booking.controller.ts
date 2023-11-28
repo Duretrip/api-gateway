@@ -28,15 +28,14 @@ export class BookingController {
   @Get()
   async getAllBookings(
     @Query('search') search: string,
-    @Query('limit') limit: number,
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 10,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = req.user as any;
-
     try {
       const response = await this.httpService.axiosRef.get(
-        `${this.bookingUrl}/bookings`,
+        `${this.bookingUrl}/bookings?page=${page}&pageSize=${pageSize}&search=${search}`,
       );
 
       res.status(201).json({
