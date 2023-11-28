@@ -38,7 +38,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, options);
   // Exclude the operation with operationId 'excludeMe'
-  document.paths['/payments/flw-webhook'] = {};
+  // document.paths['/payments/flw-webhook'] = {};
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(configService.getOrThrow('app.port', { infer: true }));
