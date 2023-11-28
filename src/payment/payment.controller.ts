@@ -90,7 +90,7 @@ export class PaymentController {
 
   @Post('flw-webhook')
   async webhook(@Req() req, @Res() res) {
-    console.log('flutterwave called us');
+    console.log('flutterwave called us at the api gateway service');
 
     const body = { ...req.body, hash: req.headers['verif-hash'] };
     await this.httpService.axiosRef.post(
