@@ -8,12 +8,13 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InititatePaymentDto } from './dto/initiate-payment.dto';
 // import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
 // import { v4 as uuidv4 } from 'uuid';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
+import { AuthGuard } from '@nestjs/passport';
 
 // function generateUniqueId() {
 //   return uuidv4();
@@ -96,8 +97,7 @@ export class PaymentController {
     @Query('search') search: string,
     @Query('page') page = 1,
     @Query('pageSize') pageSize = 10,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res,
   ) {
     try {
       const response = await this.httpService.axiosRef.get(
