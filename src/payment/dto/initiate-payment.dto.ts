@@ -19,18 +19,8 @@ export class InititatePaymentDto {
 
   @IsObject()
   @IsNotEmpty()
-  @ApiProperty({
-    example: {
-      // entity_id: 1,
-      entity_type: 'hotel',
-      // user_id: 1,
-    },
-  })
-  meta: {
-    entity_id: number;
-    entity_type: string;
-    user_id: number;
-  };
+  @ApiProperty()
+  meta: any;
 
   @IsObject()
   @IsNotEmpty()

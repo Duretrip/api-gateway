@@ -43,6 +43,20 @@ export class PaymentController {
         credentials,
       );
 
+      //Save Booking Record
+      const bookingUrl = `${process.env.BOOKING_BACKEND_DOMAIN}/bookings/create`;
+      const bookingData = {
+        status: 'not_paid',
+        transationRef: credentials.tx_ref,
+        email: credentials.meta.primary_customer?.email,
+        fullname: credentials.meta.primary_customer?.fullName || '',
+        paymentMethod: 'flutterwave',
+        data: JSON.stringify(credentials.meta),
+        entityType: credentials.meta.entity_type,
+      };
+
+      await this.httpService.axiosRef.post(bookingUrl, bookingData);
+
       res.status(201).json({
         status: true,
         data: response.data,
@@ -64,7 +78,6 @@ export class PaymentController {
         `${this.paymentUrl}/payments/verify-transaction`,
         credentials,
       );
-
       res.status(201).json({
         status: true,
         data: response.data,
@@ -93,8 +106,18 @@ export class PaymentController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiQuery({ name: 'search', required: false, description: 'Search query' })
-  @ApiQuery({ name: 'page', required: false, description: 'Page number', type: Number })
-  @ApiQuery({ name: 'pageSize', required: false, description: 'Page size', type: Number })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Page size',
+    type: Number,
+  })
   @ApiResponse({ status: 201, description: 'Returns the list of payments' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Get()
@@ -106,7 +129,9 @@ export class PaymentController {
   ) {
     try {
       const response = await this.httpService.axiosRef.get(
-        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}&search=${search}`,
+        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}${
+          search ? `&search=${search}` : ''
+        }`,
       );
 
       res.status(201).json({
