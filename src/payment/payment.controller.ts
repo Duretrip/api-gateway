@@ -8,7 +8,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InititatePaymentDto } from './dto/initiate-payment.dto';
 // import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
 // import { v4 as uuidv4 } from 'uuid';
@@ -92,6 +92,11 @@ export class PaymentController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
+  @ApiQuery({ name: 'search', required: false, description: 'Search query' })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number', type: Number })
+  @ApiQuery({ name: 'pageSize', required: false, description: 'Page size', type: Number })
+  @ApiResponse({ status: 201, description: 'Returns the list of payments' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Get()
   async getAllPayments(
     @Query('search') search: string,
