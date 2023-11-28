@@ -13,8 +13,6 @@ import { Request, Response } from 'express';
 import { HttpService } from '@nestjs/axios';
 import { AuthGuard } from '@nestjs/passport';
 
-
-
 @Controller('bookings')
 @ApiTags('Bookings')
 export class BookingController {
@@ -26,8 +24,18 @@ export class BookingController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiQuery({ name: 'search', required: false, description: 'Search query' })
-  @ApiQuery({ name: 'page', required: false, description: 'Page number', type: Number })
-  @ApiQuery({ name: 'pageSize', required: false, description: 'Page size', type: Number })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Page size',
+    type: Number,
+  })
   @ApiResponse({ status: 201, description: 'Returns the list of payments' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Get()
@@ -38,9 +46,12 @@ export class BookingController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
+
     try {
       const response = await this.httpService.axiosRef.get(
-        `${this.bookingUrl}/bookings?page=${page}&pageSize=${pageSize}&search=${search}`,
+        `${this.bookingUrl}/bookings?page=${page}&pageSize=${pageSize}${
+          search ? `&search=${search}` : ''
+        }`,
       );
 
       res.status(201).json({

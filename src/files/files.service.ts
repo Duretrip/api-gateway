@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FileEntity } from './entities/file.entity';
 import { Repository } from 'typeorm';
 import { AllConfigType } from 'src/config/config.type';
-import fs from 'fs'
+import fs from 'fs';
 import { DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as urlModule from 'url';
 
@@ -14,7 +14,7 @@ export class FilesService {
     private readonly configService: ConfigService<AllConfigType>,
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,
-  ) { }
+  ) {}
 
   async uploadFile(
     file: Express.Multer.File | Express.MulterS3.File,
@@ -32,8 +32,7 @@ export class FilesService {
     }
 
     const path = {
-      local: `/${file.path
-        }`,
+      local: `/${file.path}`,
       s3: (file as Express.MulterS3.File).location,
     };
 
@@ -63,9 +62,11 @@ export class FilesService {
     // Parse the URL to extract the pathname
     const parsedUrl = urlModule.parse(filePath);
     const pathname = parsedUrl.pathname || '';
-    const absoluteFilePath = `${process.cwd()}${pathname}`
+    const absoluteFilePath = `${process.cwd()}${pathname}`;
 
-    if (this.configService.getOrThrow('file.driver', { infer: true }) === 'local') {
+    if (
+      this.configService.getOrThrow('file.driver', { infer: true }) === 'local'
+    ) {
       // Local file deletion logic
       try {
         fs.unlinkSync(absoluteFilePath);
@@ -79,7 +80,9 @@ export class FilesService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-    } else if (this.configService.getOrThrow('file.driver', { infer: true }) === 's3') {
+    } else if (
+      this.configService.getOrThrow('file.driver', { infer: true }) === 's3'
+    ) {
       // S3 file deletion logic
       const s3 = new S3Client({
         region: this.configService.get('file.awsS3Region', { infer: true }),
@@ -104,9 +107,7 @@ export class FilesService {
       };
 
       try {
-        await s3.send(
-          new DeleteObjectCommand(params),
-        );
+        await s3.send(new DeleteObjectCommand(params));
       } catch (error) {
         // Handle error, e.g., log or throw a custom exception
         console.error('Error deleting file from S3:', error);
