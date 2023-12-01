@@ -9,12 +9,13 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { v4 as uuidv4 } from 'uuid';
 import { PermissionGuard } from 'src/permissions/guards/permission.guard';
 import { CreateJetDto } from './dto/create-jet.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateJetDto } from './dto/update-jet.dto';
 import { Permissions } from 'src/permissions/decorators/permission.decorator';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,6 +26,7 @@ import { CreateCapacityDto } from './dto/create-capacity.dto';
 import { CreateRangeDto } from './dto/create-range.dto';
 import { UpdateRangeDto } from './dto/update-range.dto';
 import { HttpService } from '@nestjs/axios';
+import { SearchJetFieldDto } from './dto/search-jet.dto';
 
 function generateUniqueId() {
   return uuidv4();
@@ -42,12 +44,21 @@ export class JetController {
   ) {
     this.jetUrl = String(process.env.JET_BACKEND_DOMAIN);
   }
+  @ApiResponse({ status: 201, description: 'Returns the list of jets' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Get()
-  async getAllJets(@Body() credentials: any, @Req() req, @Res() res) {
+  async getAllJets(
+    @Query() payload: SearchJetFieldDto,
+    @Req() req,
+    @Res() res,
+  ) {
+    console.log({ payload });
 
     try {
       const response = await this.httpService.axiosRef.get(
-        `${this.jetUrl}/jets`,
+        `${this.jetUrl}/jets?page=${payload.page}&pageSize=${payload.pageSize}${
+          payload.search ? `&search=${payload.search}` : ''
+        }`,
       );
 
       res.status(201).json({

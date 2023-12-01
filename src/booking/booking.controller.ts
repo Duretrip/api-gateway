@@ -12,12 +12,17 @@ import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { HttpService } from '@nestjs/axios';
 import { AuthGuard } from '@nestjs/passport';
+import { UsersService } from 'src/users/users.service';
+import { BookingSearchFieldDto } from './dto/booking-search-field.dto';
 
 @Controller('bookings')
 @ApiTags('Bookings')
 export class BookingController {
   bookingUrl: string;
-  constructor(private readonly httpService: HttpService) {
+  constructor(
+    private readonly httpService: HttpService,
+    private usersService: UsersService,
+  ) {
     this.bookingUrl = String(process.env.BOOKING_BACKEND_DOMAIN);
   }
 
@@ -46,12 +51,50 @@ export class BookingController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-
     try {
       const response = await this.httpService.axiosRef.get(
         `${this.bookingUrl}/bookings?page=${page}&pageSize=${pageSize}${
           search ? `&search=${search}` : ''
         }`,
+      );
+
+      res.status(201).json({
+        status: true,
+        data: response.data,
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get('by-email')
+  async getTransactionsByEmail(
+    @Query() searchQuery: BookingSearchFieldDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res,
+  ) {
+    try {
+      const userReq = req.user as {
+        id: number;
+        role: any;
+        sessionId: number;
+        iat: number;
+        exp: number;
+      };
+      const user = await this.usersService.findOne({
+        id: userReq.id,
+      });
+
+      const payload = {
+        ...searchQuery,
+        email: user?.email,
+      };
+      const response = await this.httpService.axiosRef.get(
+        `${this.bookingUrl}/bookings/by-email
+        `,
+        { params: payload },
       );
 
       res.status(201).json({
