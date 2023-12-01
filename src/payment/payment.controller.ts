@@ -10,24 +10,21 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InititatePaymentDto } from './dto/initiate-payment.dto';
-// import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
-// import { v4 as uuidv4 } from 'uuid';
 import { VerifyTransactionDto } from './dto/verify-transaction.dto';
 import { HttpService } from '@nestjs/axios';
 import { AuthGuard } from '@nestjs/passport';
 import { VerifyPaymentDto } from './dto/verify-payment.dto';
-
-// function generateUniqueId() {
-//   return uuidv4();
-// }
+import { Request } from 'express';
+import { PaymentSearchFieldDto } from './dto/payment-search-field.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('payments')
 @ApiTags('Payments')
 export class PaymentController {
   paymentUrl: string;
   constructor(
-    // private readonly rabbitMQService: RabbitMQService,
     private readonly httpService: HttpService,
+    private usersService: UsersService,
   ) {
     this.paymentUrl = String(process.env.PAYMENT_BACKEND_DOMAIN);
   }
@@ -39,10 +36,19 @@ export class PaymentController {
     @Res({ passthrough: true }) res,
   ) {
     try {
-      const response = await this.httpService.axiosRef.post(
-        `${this.paymentUrl}/payments/initiate`,
-        credentials,
-      );
+      // Save Payment
+      const paymentUrl = `${process.env.PAYMENT_BACKEND_DOMAIN}/payments/save`;
+      const paymentData = {
+        transactionRef: credentials.tx_ref,
+        status: 'not_paid',
+        amount: credentials.amount,
+        currency: credentials.currency,
+        email: credentials.meta.primary_customer?.email,
+        fullname: credentials.meta.primary_customer?.fullName || '',
+        dateCreated: new Date(),
+      };
+
+      await this.httpService.axiosRef.post(paymentUrl, paymentData);
 
       //Save Booking Record
       const bookingUrl = `${process.env.BOOKING_BACKEND_DOMAIN}/bookings/create`;
@@ -57,6 +63,11 @@ export class PaymentController {
       };
 
       await this.httpService.axiosRef.post(bookingUrl, bookingData);
+
+      const response = await this.httpService.axiosRef.post(
+        `${this.paymentUrl}/payments/initiate`,
+        credentials,
+      );
 
       res.status(201).json({
         status: true,
@@ -122,7 +133,7 @@ export class PaymentController {
       body,
     );
 
-    if (data){
+    if (data) {
       res.status(200).end();
     }
 
@@ -159,7 +170,8 @@ export class PaymentController {
   ) {
     try {
       const response = await this.httpService.axiosRef.get(
-        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}${search ? `&search=${search}` : ''
+        `${this.paymentUrl}/payments?page=${page}&pageSize=${pageSize}${
+          search ? `&search=${search}` : ''
         }`,
       );
 
@@ -173,138 +185,43 @@ export class PaymentController {
     }
   }
 
-  // @Post('initiate')
-  // async initiatePayment(
-  //   @Body() credentials: InititatePaymentDto,
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  // ) {
-  //   const correlationId = generateUniqueId();
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get('by-email')
+  async getTransactionsByEmail(
+    @Query() searchQuery: PaymentSearchFieldDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res,
+  ) {
+    try {
+      const userReq = req.user as {
+        id: number;
+        role: any;
+        sessionId: number;
+        iat: number;
+        exp: number;
+      };
+      const user = await this.usersService.findOne({
+        id: userReq.id,
+      });
 
-  //   // Translate the HTTP request into a message
-  //   const message = {
-  //     action: 'initiate_payment',
-  //     payload: credentials,
-  //     correlationId,
-  //   };
+      const payload = {
+        ...searchQuery,
+        email: user?.email,
+      };
+      const response = await this.httpService.axiosRef.get(
+        `${this.paymentUrl}/payments/by-email
+        `,
+        { params: payload },
+      );
 
-  //   try {
-  //     // Publish the initiate_payment message to the RabbitMQ queue
-  //     await this.rabbitMQService.publishMessage('payment-queue', message);
-
-  //     // Listen for the response with the specified correlation ID
-  //     const response =
-  //       await this.rabbitMQService.waitForResponseWithTimeout(correlationId);
-  //     if (response.action === 'payment_initiated') {
-  //       const { message, statusCode } = response?.response;
-  //       res
-  //         .status(statusCode ? statusCode : 500)
-  //         .send(message ? message : 'Internal Server Error');
-  //     } else {
-  //       res.status(response.status ? response?.status : 500).json({
-  //         message: response.message ? response.message : 'An error occurred',
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     res.status(500).json({ message: 'Internal Server Error' });
-  //   }
-  // }
-  // @Post('verify')
-  // async verifyTransaction(
-  //   @Body() credentials: VerifyTransactionDto,
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  // ) {
-  //   const correlationId = generateUniqueId();
-
-  //   // Translate the HTTP request into a message
-  //   const message = {
-  //     action: 'verify_transaction',
-  //     payload: credentials,
-  //     correlationId,
-  //   };
-  //   try {
-  //     // Publish the initiate_payment message to the RabbitMQ queue
-  //     await this.rabbitMQService.publishMessage('payment-queue', message);
-
-  //     // Listen for the response with the specified correlation ID
-  //     const response =
-  //       await this.rabbitMQService.waitForResponseWithTimeout(correlationId);
-
-  //     if (response.action === 'transaction_verified') {
-  //       console.log({ response });
-  //       const { message, statusCode } = response?.response;
-  //       res
-  //         .status(statusCode ? statusCode : 500)
-  //         .send(message ? message : 'Internal Server Error');
-  //     } else {
-  //       res.status(response.status ? response?.status : 500).json({
-  //         message: response.message ? response.message : 'An error occurred',
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     res.status(500).json({ message: 'Internal Server Error' });
-  //   }
-  // }
-
-  // @Post('flw-webhook')
-  // async webhook(@Req() req: Request, @Res() res: Response) {
-  //   const correlationId = generateUniqueId();
-
-  //   // Translate the HTTP request into a message
-  //   const message = {
-  //     action: 'trigger_webhook',
-  //     payload: { body: req.body, headers: req.headers['verify-hash'], res },
-  //     correlationId,
-  //   };
-  //   try {
-  //     // Publish the initiate_payment message to the RabbitMQ queue
-  //     await this.rabbitMQService.publishMessage('payment-queue', message);
-
-  //     // Listen for the response with the specified correlation ID
-  //     const response =
-  //       await this.rabbitMQService.waitForResponseWithTimeout(correlationId);
-  //     const paymentStatus = response.data.status;
-  //     if (paymentStatus === 'successfull') {
-  //       // Publish the Booking message to the RabbitMQ queue
-
-  //       const bookingMessage = {
-  //         action: 'create_booking',
-  //         payload: req.body,
-  //         correlationId,
-  //       };
-  //       await this.rabbitMQService.publishMessage(
-  //         'booking-queue',
-  //         bookingMessage,
-  //       );
-
-  //       if (response.action === 'booking_created') {
-  //         const { message, statusCode } = response?.response;
-  //         res
-  //           .status(statusCode ? statusCode : 500)
-  //           .send(message ? message : 'Internal Server Error');
-  //       } else {
-  //         res.status(response.status ? response?.status : 500).json({
-  //           message: response.message ? response.message : 'An error occurred',
-  //         });
-  //       }
-  //     }
-  //     if (response.action === 'webhook_triggered') {
-  //       console.log({ response });
-  //       const { message, statusCode } = response?.response;
-  //       res
-  //         .status(statusCode ? statusCode : 500)
-  //         .send(message ? message : 'Internal Server Error');
-  //     } else {
-  //       res.status(response.status ? response?.status : 500).json({
-  //         message: response.message ? response.message : 'An error occurred',
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     res.status(500).json({ message: 'Internal Server Error' });
-  //   }
-  // }
+      res.status(201).json({
+        status: true,
+        data: response.data,
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
 }
